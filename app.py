@@ -131,12 +131,12 @@ radar_features.add_trace(go.Scatterpolar(
 radar_features.update_layout(
         width=500,
         height=400,
-        margin=dict(l=40, r=40, t=0, b=20),
+        margin=dict(l=40, r=40, t=20, b=20),
         showlegend=True,
         legend=dict(
             orientation="h",
             yanchor="bottom",
-            y=1.0,
+            y=1.1,
             xanchor="right",
             x=1),
         paper_bgcolor="rgba(0, 0, 0, 0)",
@@ -193,7 +193,7 @@ app.layout = html.Div(
                 
                 # second widget: description of cluster
                 html.Div([
-                        html.P(id='cluster_text', children='You belong to cluster A')
+                        html.P(id='cluster_text', children="Hi babe. You are probably sleepy and reading this wondering how come there is so much text here. Fear not. It is I! Your boyfriend (dramatic cat pose (m)O_O(m) ). Before you start coding, I wanted to say that I admire your capability to say: you know what? Getting an actual dash board here with interactive plots and loads of visual user info sounds like a good idea. And then you go ahead and do it. What if you don´t have much experience on it, what if you do not know about the available tools and don´t have much time? You go ahead and do it anyway. Focusing single mindedly on it. I admire it. It is for things like this that I know that things will go well for you in the end. It is for things like this that I know you will be an awesome PhD student. You are getting close, babe. Te amo <3.")  # Previous text 'You belong to cluster A'
                         ], id='cluster_div', className='box_comment', style={"width":"70%"})
                 ],
                 id="row1",

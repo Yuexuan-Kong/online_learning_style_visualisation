@@ -86,6 +86,20 @@ radio = dbc.RadioItems(
     value='dim1'
 )
 
+clusterRadio = dbc.RadioItems(
+    id="choose-cluster",
+    className="radio",
+    options=[
+        {'label': 'What', 'value': 'dim1'},
+        {'label': 'Should', 'value': 'dim2'},
+        {'label': 'Go', 'value': 'dim3'},
+        {'label': 'In', 'value': 'dim4'},
+        {'label': 'These', 'value': 'dim5'},
+        {'label': 'Thingies', 'value': 'dim6'},
+    ],
+    value='dim1'
+)
+
 # slider map for number of days
 slider_map = daq.Slider(
     id="slider_map",
@@ -114,7 +128,6 @@ categories = []
 for i in dic_pre.keys():
     categories.extend(dic_pre[i])
 
-# TODO position of the legend of the radar graph is not centered
 radar_features.add_trace(go.Scatterpolar(
       r=feature.to_list(),
       theta=categories,
@@ -128,6 +141,8 @@ radar_features.add_trace(go.Scatterpolar(
       name='Average preferences平均偏好'
 ))
 
+# TODO position of the legend of the radar graph is not centered
+# DONE: I fine tuned the "x" value in the "legend" direct
 radar_features.update_layout(
         width=500,
         height=400,
@@ -138,7 +153,7 @@ radar_features.update_layout(
             yanchor="bottom",
             y=1.1,
             xanchor="right",
-            x=1),
+            x=0.94),
         paper_bgcolor="rgba(0, 0, 0, 0)",
         font_color="black",
         font_size=10, 
@@ -177,8 +192,6 @@ app.layout = html.Div(
             className="side_bar",
         ),
         
-        # TODO: i want to add another div in the first row between the current two, a horizontal bar graph of numbers  in each cluster of 6 clusters
-        # Can you do that? you can make up six numbers. Merci <3
         # first row
         html.Div(
             [
@@ -193,9 +206,24 @@ app.layout = html.Div(
                     className='box', 
                     style={"width":"40%", 'vertical-align': 'middle', 'horizontal-align': 'middle'}
                 ),
-                
+
                 # second widget: description of cluster
+                html.Div(
+                    [
+                        html.Label("Choose cluster:"), 
+                        html.Br(),
+                        html.Label("你的爱人爱你"),
+                        html.Br(),
+                        clusterRadio,
+                    ],
+                    id='chooseCluster',
+                    className="box",
+                    style={"width":"15%", 'vertical-align': 'middle', 'horizontal-align': 'middle'}
+                ),
+                
+                # third widget: description of cluster
                 # TODO: change the backgroudn color to dark green like the sider on the left? it's defined in asstes/xxx.css. This green is not too pretty
+                # DONE: Turns out the green on the side bar does not look good. The class to change in style.css is "box_comment"
                 html.Div([
                         html.P(id='cluster_text', children="Hi babe. You are probably sleepy and reading this wondering how come there is so much text here. Fear not. It is I! Your boyfriend (dramatic cat pose (m)O_O(m) ). Before you start coding, I wanted to say that I admire your capability to say: you know what? Getting an actual dash board here with interactive plots and loads of visual user info sounds like a good idea. And then you go ahead and do it. What if you don´t have much experience on it, what if you do not know about the available tools and don´t have much time? You go ahead and do it anyway. Focusing single mindedly on it. I admire it. It is for things like this that I know that things will go well for you in the end. It is for things like this that I know you will be an awesome PhD student. You are getting close, babe. Te amo <3.")  # Previous text 'You belong to cluster A'
                         ], id='cluster_div', className='box_comment', style={"width":"70%"})
@@ -209,12 +237,13 @@ app.layout = html.Div(
             [
                 # second widget: choose dimension 
                 # TODO: more margin between choose your dimension and buttons
-                # TODO: is it just me or this box looks ugly? m<>m
+                # DONE: I added an extra html.Br()
                 html.Div(
                     [
-                        html.Label("Choose dimension:"), 
+                        html.Label("Choose dimension"), 
                         html.Br(),
-                        html.Label("选择观察的维度："),
+                        html.Label("选择观察的维度"),
+                        html.Br(),
                         html.Br(),
                         radio,
                     ],
@@ -232,15 +261,17 @@ app.layout = html.Div(
 
                     # first row for two preferences
                     html.Div([
-                        # header
                         # TODO: "you among all people should be on top of two graphs instead of on the left"
+                        # DONE: Like this? (Dani moves hands as if presenting a cool product)
+                        # header
                         html.Label(
                         "You among all people 你在人群中的位置",
-                        style={"font-size": "medium"},
-                                ),
-                        html.Br(),
-                        html.Br(),
-
+                           style={"font-size": "medium"},
+                        ),
+                      ],
+                      style={"text-align": "center"},
+                    ),
+                    html.Div([
                         # preference 1 
                         html.Div([
                             dcc.Graph(
@@ -270,7 +301,7 @@ app.layout = html.Div(
                     ],
                     id ='row2col2',
                     className='box',
-                    style={"width":"80%"}
+                    style={"width":"80%", "text-align": "center"}
                 )
                 ],
                 id='row2',
@@ -570,7 +601,10 @@ def display_charts_single(day):
                 values="0",
                 color="event_class",
                 color_discrete_sequence=px.colors.sequential.haline_r,
-            ).update_traces(hovertemplate="%{label}<br>" + "Number of clicks: %{value} times")
+            ).update_traces(
+              hovertemplate="%{label}<br>" + "Number of clicks: %{value} times",
+              textinfo="label+percent entry"
+            )
 
 
     pie_chart_click = pie_chart_click.update_layout(
@@ -617,13 +651,19 @@ def display_charts_all(day):
     click_all_sun = click_all[click_all.interval<=day]
     
     # TODO: possible to add percentage shows on the pie chart?
+    # DONE: We had to add a "textinfo" param in update_traces
+    # Look at this: https://stackoverflow.com/questions/71902624/plotly-sunburst-chart-with-percentages
+
     pie_chart_click = px.sunburst(
                 click_all_sun,
                 path=["event_class", "event"],
                 values='count',
                 color="event_class",
                 color_discrete_sequence=px.colors.sequential.Peach_r,
-            ).update_traces(hovertemplate="%{label}<br>" + "Number of clicks: %{value} times")
+            ).update_traces(
+                hovertemplate="%{label}<br>" + "Number of clicks: %{value} times",
+                textinfo="label+percent parent"
+            )
 
 
     pie_chart_click = pie_chart_click.update_layout(
@@ -638,6 +678,7 @@ def display_charts_all(day):
     click_all_line = click_all_sun.drop(columns=['event'])
     click_all_line = click_all_line.groupby(['interval', 'event_class']).sum().groupby(['event_class']).cumsum().reset_index()
     # TODO: is it possible to change number of clicks to percentage of clicks on this material against all materials? because now the number is tooooo big
+    # NOT DONE: It already shows percentages, right?
     # this is for the cool bar chart on the fourth row
     line_chart_click = px.bar(
             click_all_line, 
@@ -646,7 +687,9 @@ def display_charts_all(day):
             color="event_class", 
             text_auto=True,
             labels={'interval':'Day 天数', 'event_class':'event class事件类型', 'count':'clicks点击数量'}
-            ).update_traces(hovertemplate="%{label}<br>" + "Number of clicks点击数量: %{y}")
+            ).update_traces(
+              hovertemplate="%{label}<br>" + "Number of clicks点击数量: %{y}",
+            )
 
     line_chart_click.update_xaxes(range=[1, day])
     line_chart_click = line_chart_click.update_layout(
@@ -659,5 +702,3 @@ def display_charts_all(day):
 
 if __name__ == "__main__":
     app.run_server(debug=True)
-    # TODO: remember that there is a sleepy muxho on the other side of the continent, dreaming about you and missing you loads.
-    # TODO: remeber to take care of yourself and tuckle yourself in so that you won't feel cold in the night

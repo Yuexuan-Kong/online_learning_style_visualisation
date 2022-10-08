@@ -114,7 +114,7 @@ categories = []
 for i in dic_pre.keys():
     categories.extend(dic_pre[i])
 
-# TODO position of the legend of the radar graph is too low
+# TODO position of the legend of the radar graph is not centered
 radar_features.add_trace(go.Scatterpolar(
       r=feature.to_list(),
       theta=categories,
@@ -131,12 +131,12 @@ radar_features.add_trace(go.Scatterpolar(
 radar_features.update_layout(
         width=500,
         height=400,
-        margin=dict(l=40, r=40, t=0, b=20),
+        margin=dict(l=40, r=40, t=20, b=20),
         showlegend=True,
         legend=dict(
             orientation="h",
             yanchor="bottom",
-            y=1.0,
+            y=1.1,
             xanchor="right",
             x=1),
         paper_bgcolor="rgba(0, 0, 0, 0)",
@@ -163,6 +163,7 @@ app.layout = html.Div(
                     "We are interested in investigating the food products that have the biggest impact on environment. Here you can understand which are the products whose productions emit more greenhouse gases and associate this with each supply chain step, their worldwide productions, and the water use.",
                     style={"color": "rgb(33 36 35)"},
                 ),
+                # TODO: can you find an image here for learning style and/or online learning? 
                 html.Img(
                     src=app.get_asset_url("supply_chain.png"),
                     style={
@@ -176,6 +177,8 @@ app.layout = html.Div(
             className="side_bar",
         ),
         
+        # TODO: i want to add another div in the first row between the current two, a horizontal bar graph of numbers  in each cluster of 6 clusters
+        # Can you do that? you can make up six numbers. Merci <3
         # first row
         html.Div(
             [
@@ -192,6 +195,7 @@ app.layout = html.Div(
                 ),
                 
                 # second widget: description of cluster
+                # TODO: change the backgroudn color to dark green like the sider on the left? it's defined in asstes/xxx.css. This green is not too pretty
                 html.Div([
                         html.P(id='cluster_text', children='You belong to cluster A')
                         ], id='cluster_div', className='box_comment', style={"width":"70%"})
@@ -204,6 +208,8 @@ app.layout = html.Div(
         html.Div(
             [
                 # second widget: choose dimension 
+                # TODO: more margin between choose your dimension and buttons
+                # TODO: is it just me or this box looks ugly? m<>m
                 html.Div(
                     [
                         html.Label("Choose dimension:"), 
@@ -227,6 +233,7 @@ app.layout = html.Div(
                     # first row for two preferences
                     html.Div([
                         # header
+                        # TODO: "you among all people should be on top of two graphs instead of on the left"
                         html.Label(
                         "You among all people 你在人群中的位置",
                         style={"font-size": "medium"},
@@ -475,7 +482,7 @@ def display_histogram_prefs(chooseDim):
             title= title1,
             yaxis={'title':'Number of people人数','visible': True, 'showticklabels': True, 
                     'tickmode' : 'array',
-        'tickvals' : [0.1,2],
+        'tickvals' : [0.01,2.5],
         'ticktext' : ['few','numerous']},
             xaxis={'title':'Preference偏好','visible': True, 'showticklabels': True,
                     'tickmode' : 'array',
@@ -500,14 +507,16 @@ def display_histogram_prefs(chooseDim):
     fig_pref1.add_annotation(x=feature[str1], y=2,
             text="Your position你的位置",
             showarrow=True,
-            arrowhead=1)
+            arrowhead=1,
+            ax=60,
+            ay=10)
 
     fig_pref2.update_layout(
             showlegend=False,
             title=title2,
             yaxis={'title':'Number of people人数','visible': True, 'showticklabels': True, 
                     'tickmode' : 'array',
-        'tickvals' : [0.1,2],
+        'tickvals' : [0.01,2.5],
         'ticktext' : ['few','numerous']},
             xaxis={'title':'Preference偏好','visible': True, 'showticklabels': True,
                     'tickmode' : 'array',
@@ -532,7 +541,9 @@ def display_histogram_prefs(chooseDim):
     fig_pref2.add_annotation(x=feature[str2], y=2,
             text="Your position你的位置",
             showarrow=True,
-            arrowhead=1)
+            arrowhead=1,
+            ax=60,
+            ay=10)
 
     return fig_pref1, fig_pref2
 
@@ -552,6 +563,7 @@ def display_charts_single(day):
         click_single_sun = pd.DataFrame({'event_class':['no activity'], 'interval':[0],'event':['no activity'], '0':[0]})
 
 
+    # TODO: possible to put percentage on the piechart here?
     pie_chart_click = px.sunburst(
                 click_single_sun,
                 path=["event_class", "event"],
@@ -603,7 +615,8 @@ def display_charts_all(day):
     global click_all   
 
     click_all_sun = click_all[click_all.interval<=day]
-
+    
+    # TODO: possible to add percentage shows on the pie chart?
     pie_chart_click = px.sunburst(
                 click_all_sun,
                 path=["event_class", "event"],
@@ -624,6 +637,8 @@ def display_charts_all(day):
 
     click_all_line = click_all_sun.drop(columns=['event'])
     click_all_line = click_all_line.groupby(['interval', 'event_class']).sum().groupby(['event_class']).cumsum().reset_index()
+    # TODO: is it possible to change number of clicks to percentage of clicks on this material against all materials? because now the number is tooooo big
+    # this is for the cool bar chart on the fourth row
     line_chart_click = px.bar(
             click_all_line, 
             x="interval", 
@@ -644,3 +659,5 @@ def display_charts_all(day):
 
 if __name__ == "__main__":
     app.run_server(debug=True)
+    # TODO: remember that there is a sleepy muxho on the other side of the continent, dreaming about you and missing you loads.
+    # TODO: remeber to take care of yourself and tuckle yourself in so that you won't feel cold in the night

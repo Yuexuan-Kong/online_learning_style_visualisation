@@ -141,8 +141,9 @@ radar_features.add_trace(go.Scatterpolar(
       name='Average preferences平均偏好'
 ))
 
-# TODO position of the legend of the radar graph is not centered
 # DONE: I fine tuned the "x" value in the "legend" direct
+
+# TODO: the position of the radar graph is not centered :)
 radar_features.update_layout(
         width=500,
         height=400,
@@ -207,6 +208,8 @@ app.layout = html.Div(
                     style={"width":"40%", 'vertical-align': 'middle', 'horizontal-align': 'middle'}
                 ),
 
+
+                # TODO: what i wanted is a bar chart hehe, not buttons, a horizontal bar chart that show how many students there are in each cluster :)
                 # second widget: description of cluster
                 html.Div(
                     [
@@ -222,8 +225,7 @@ app.layout = html.Div(
                 ),
                 
                 # third widget: description of cluster
-                # TODO: change the backgroudn color to dark green like the sider on the left? it's defined in asstes/xxx.css. This green is not too pretty
-                # DONE: Turns out the green on the side bar does not look good. The class to change in style.css is "box_comment"
+                # TODO: How about the color now of this box now?
                 html.Div([
                         html.P(id='cluster_text', children="Hi babe. You are probably sleepy and reading this wondering how come there is so much text here. Fear not. It is I! Your boyfriend (dramatic cat pose (m)O_O(m) ). Before you start coding, I wanted to say that I admire your capability to say: you know what? Getting an actual dash board here with interactive plots and loads of visual user info sounds like a good idea. And then you go ahead and do it. What if you don´t have much experience on it, what if you do not know about the available tools and don´t have much time? You go ahead and do it anyway. Focusing single mindedly on it. I admire it. It is for things like this that I know that things will go well for you in the end. It is for things like this that I know you will be an awesome PhD student. You are getting close, babe. Te amo <3.")  # Previous text 'You belong to cluster A'
                         ], id='cluster_div', className='box_comment', style={"width":"70%"})
@@ -236,7 +238,6 @@ app.layout = html.Div(
         html.Div(
             [
                 # second widget: choose dimension 
-                # TODO: more margin between choose your dimension and buttons
                 # DONE: I added an extra html.Br()
                 html.Div(
                     [
@@ -261,8 +262,8 @@ app.layout = html.Div(
 
                     # first row for two preferences
                     html.Div([
-                        # TODO: "you among all people should be on top of two graphs instead of on the left"
                         # DONE: Like this? (Dani moves hands as if presenting a cool product)
+                        # exactly like this
                         # header
                         html.Label(
                         "You among all people 你在人群中的位置",
@@ -594,7 +595,6 @@ def display_charts_single(day):
         click_single_sun = pd.DataFrame({'event_class':['no activity'], 'interval':[0],'event':['no activity'], '0':[0]})
 
 
-    # TODO: possible to put percentage on the piechart here?
     pie_chart_click = px.sunburst(
                 click_single_sun,
                 path=["event_class", "event"],
@@ -650,7 +650,6 @@ def display_charts_all(day):
 
     click_all_sun = click_all[click_all.interval<=day]
     
-    # TODO: possible to add percentage shows on the pie chart?
     # DONE: We had to add a "textinfo" param in update_traces
     # Look at this: https://stackoverflow.com/questions/71902624/plotly-sunburst-chart-with-percentages
 
@@ -679,6 +678,7 @@ def display_charts_all(day):
     click_all_line = click_all_line.groupby(['interval', 'event_class']).sum().groupby(['event_class']).cumsum().reset_index()
     # TODO: is it possible to change number of clicks to percentage of clicks on this material against all materials? because now the number is tooooo big
     # NOT DONE: It already shows percentages, right?
+    # Muxho: it shows the number of clicks instead of percentages, but i think it's not too grave
     # this is for the cool bar chart on the fourth row
     line_chart_click = px.bar(
             click_all_line, 
@@ -702,3 +702,4 @@ def display_charts_all(day):
 
 if __name__ == "__main__":
     app.run_server(debug=True)
+    # TODO: remember that muxho is very very grateful to her huobao <3 I love you.

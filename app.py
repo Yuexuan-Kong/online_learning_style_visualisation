@@ -1,8 +1,9 @@
 import os
 
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
+import math
+from dash import dcc
+from dash import html
 from dash.dependencies import Input, Output, State
 import dash_daq as daq
 import dash_bootstrap_components as dbc
@@ -14,14 +15,24 @@ import random
 
 
 # ---------------------------------- Read data --------------------------------
-features_norm = pd.read_csv("data/features_norm_test_viz.csv")
-features_norm["f_sen"] = round((features_norm["f_sen_1"]+features_norm["f_sen_1"])/2, 2)
-features_norm["f_per"] = round((features_norm["f_per_1"]+features_norm["f_per_1"])/2, 2)
-features_norm["f_lea"] = round((features_norm["f_lea_1"]+features_norm["f_lea_1"])/2, 2)
+features_norm = pd.read_csv("data/features_norm_row.csv")
+features_norm = features_norm.rename(columns={"f_glo_1":"f_glo", "f_seq_1":"f_seq"})
+features_norm["f_act"] = round((features_norm["f_act_1"]+features_norm["f_act_2"])/2, 2)
+features_norm["f_sen"] = round((features_norm["f_sen_1"]+features_norm["f_sen_2"])/2, 2)
+features_norm["f_vis"] = round((features_norm["f_vis_1"]+features_norm["f_vis_2"])/2, 2)
+features_norm["f_ver"] = round((features_norm["f_ver_1"]+features_norm["f_ver_2"])/2, 2)
+features_norm["f_per"] = round((features_norm["f_per_1"]+features_norm["f_per_2"])/2, 2)
+features_norm["f_lea"] = round((features_norm["f_lea_1"]+features_norm["f_lea_2"])/2, 2)
 
-username = random.randint(1, 1)
+username = random.randint(1, 1)+3000 # type 6
 feature = features_norm.iloc[username]
+feature = feature[["f_act", "f_ref", "f_sen","f_int","f_glo","f_seq","f_vis","f_ver","f_ded","f_ind","f_per","f_lea"]]
 dropout = pd.read_csv("data/dropout_rate.csv")
+dropout_mean = dropout["truth"].mean()
+dropout_user = dropout["truth"].iloc[username]
+count = pd.read_csv("data/summary_clicks.csv")
+count_mean = count["count_course"].mean()
+count_user = count["count_course"].iloc[username]
 clicks = pd.read_csv("data/all_count_per_type_transformed.csv")
 
 # for line chart over time
@@ -33,7 +44,7 @@ click_single = clicks[clicks["username"] == username]
 
 f_act = features_norm["f_act"]
 f_ref = features_norm["f_ref"]
-f_sen = round((features_norm["f_sen_1"]+features_norm["f_sen_1"])/2, 2)
+f_sen = features_norm["f_sen"]
 f_int = features_norm["f_int"]
 f_glo = features_norm["f_glo"]
 f_seq = features_norm["f_seq"]
@@ -41,8 +52,8 @@ f_vis = features_norm["f_vis"]
 f_ver = features_norm["f_ver"]
 f_ded = features_norm["f_ded"]
 f_ind = features_norm["f_ind"]
-f_per = round((features_norm["f_per_1"]+features_norm["f_per_2"])/2, 2)
-f_lea = round((features_norm["f_lea_1"]+features_norm["f_lea_2"])/2, 2)
+f_per = features_norm["f_per"]
+f_lea = features_norm["f_lea"]
 
 dic_fea = {
         "dim1":[f_act, f_ref],
@@ -67,7 +78,7 @@ dic_pre = {
         'dim2':['Sensitive感知型','Intuitive直觉型'],
         'dim3':['Global整体型','Sequential序列型'],
         'dim4':['Visual视觉型','Verbal言语型'],
-        'dim5':['Deductive推理型','Inductive演绎型'],
+        'dim5':['Deductive演绎型','Inductive归纳型'],
         'dim6':['Performance表现型','Learning学习型']
         }
 
@@ -128,6 +139,7 @@ categories = []
 for i in dic_pre.keys():
     categories.extend(dic_pre[i])
 
+
 radar_features.add_trace(go.Scatterpolar(
       r=feature.to_list(),
       theta=categories,
@@ -135,7 +147,7 @@ radar_features.add_trace(go.Scatterpolar(
       name='Your preferences你的偏好'
 ))
 radar_features.add_trace(go.Scatterpolar(
-      r=[0.5 for _ in range(0,13)],
+      r=[0.23, 0.47, 0.52, 0.39, 0.16, 0.29, 0.51, 0.59, 0.41, 0.59, 0.43, 0.44],
       theta=categories,
       fill='toself',
       name='Average preferences平均偏好'
@@ -147,7 +159,8 @@ radar_features.add_trace(go.Scatterpolar(
 radar_features.update_layout(
         width=500,
         height=400,
-        margin=dict(l=40, r=40, t=20, b=20),
+        autosize=True,
+        margin=dict(l=0, r=0, t=0, b=32),
         showlegend=True,
         legend=dict(
             orientation="h",
@@ -165,6 +178,60 @@ radar_features.update_layout(
           )),
 )
 
+# Horizontal bar chart for number of people in different clusters
+bar_num = go.Figure()
+bar_num.add_trace(go.Bar(
+    y=['I型', 'II型', 'III型', 'IV型', 'V型', 'VI型', 'VII型'],
+    x=[4326, 2977, 2905, 4570, 3865, 2539, 5741],
+    name='number of people',
+    orientation='h',
+    marker=dict(
+        color='rgba(246, 78, 139, 0.6)',
+        line=dict(color='rgba(246, 78, 139, 1.0)', width=3)
+    ),
+))
+
+bar_num.update_layout(
+    autosize=True,
+    height=400,
+    width=300,
+    margin=dict(
+        l=0,
+        r=0,
+        b=0,
+        t=0,
+        pad=0
+    ),
+    paper_bgcolor="rgba(0, 0, 0, 0)",
+)
+bar_num.update_traces(
+        texttemplate = [4326, 2977, 2905, 4570, 3865, 2539, 5741],textposition = "inside"
+        )
+
+# Bar charts for dropout rate and count of chosen courses
+
+animals=['Dropout rate辍课数', 'Courses chosen总选课数']
+bar_drop = go.Figure()
+
+bar_drop.add_trace(go.Bar(
+    name='You你的数据', x=animals, y=[math.ceil(dropout_user*count_user), count_user],
+    marker_color='indianred'
+))
+bar_drop.add_trace(go.Bar(
+    name='Average平均数据', x=animals, y=[dropout_mean*count_mean, count_mean], 
+    marker_color='lightsalmon'
+))
+# Change the bar mode
+bar_drop.update_layout(autosize=True, margin=dict(
+        l=0,
+        r=0,
+        b=0,
+        t=0,
+        pad=0
+    ),
+    xaxis_tickangle=0, barmode='group', paper_bgcolor="rgba(0, 0, 0, 0)"
+)
+
 # ---------------------------------- Layout -----------------------------------
 app = dash.Dash(__name__)
 
@@ -174,9 +241,14 @@ app.layout = html.Div(
     [
         html.Div(
             [
+                html.H1(children="你的在线学习风格展示"),
                 html.H1(children="YOUR ONLINE LEARNING STYLE"),
                 html.Label(
-                    "We are interested in investigating the food products that have the biggest impact on environment. Here you can understand which are the products whose productions emit more greenhouse gases and associate this with each supply chain step, their worldwide productions, and the water use.",
+                    "你想不想知道，你是擅长像福尔摩斯一样归纳推理、还是擅长像高斯一样推理数学定理呢？你喜欢跳跃性的学习知识，还是喜欢循序渐进的一步步来呢？",
+                    style={"color": "rgb(33 36 35)"},
+                ),
+                html.Label(
+                    "在这里，你可以找到你想要的答案。在这里，你可以看到自己的在线学习风格偏好；在这里，你可以看到自己与他人的比较；在这里，你可以看到自己在线学习时更喜欢点击什么材料。",
                     style={"color": "rgb(33 36 35)"},
                 ),
                 # TODO: can you find an image here for learning style and/or online learning? 
@@ -184,9 +256,9 @@ app.layout = html.Div(
                     src=app.get_asset_url("supply_chain.png"),
                     style={
                         "position": "relative",
-                        "width": "180%",
-                        "left": "-83px",
-                        "top": "-20px",
+                        "width": "115%",
+                        "left": "-20px",
+                        "top": "40px",
                     },
                 ),
             ],
@@ -198,6 +270,17 @@ app.layout = html.Div(
             [
                 # first widget: radar chart
                 html.Div([
+                    html.Label(
+                        "你的各偏好在人群中的比较",
+                        style={"font-size": "medium"},
+                    ),
+                    html.Br(),
+                    html.Label(
+                        "Your preferences compared to average",
+                        style={"font-size": "medium"},
+                    ),
+                    html.Br(),
+                    html.Br(),
                     dcc.Graph(
                         id='radar-figure', 
                         figure=radar_features,
@@ -209,31 +292,94 @@ app.layout = html.Div(
                 ),
 
 
-                # TODO: what i wanted is a bar chart hehe, not buttons, a horizontal bar chart that show how many students there are in each cluster :)
-                # second widget: description of cluster
-                html.Div(
-                    [
-                        html.Label("Choose cluster:"), 
-                        html.Br(),
-                        html.Label("你的爱人爱你"),
-                        html.Br(),
-                        clusterRadio,
+                # first widget: bar chart of dropout rate
+                html.Div([
+                    html.Label(
+                        "你的各偏好在人群中的比较",
+                        style={"font-size": "medium"},
+                    ),
+                    html.Br(),
+                    html.Label(
+                        "Your preferences compared to average",
+                        style={"font-size": "medium"},
+                    ),
+                    html.Br(),
+                    html.Br(),
+                    dcc.Graph(
+                        id='dropout_figure', 
+                        figure=bar_drop,
+                        )
                     ],
-                    id='chooseCluster',
-                    className="box",
-                    style={"width":"15%", 'vertical-align': 'middle', 'horizontal-align': 'middle'}
+                    id='dropout-box', 
+                    className='box', 
+                    style={"width":"50%", 'vertical-align': 'middle', 'horizontal-align': 'middle'}
                 ),
                 
-                # third widget: description of cluster
-                # TODO: How about the color now of this box now?
-                html.Div([
-                        html.P(id='cluster_text', children="Hi babe. You are probably sleepy and reading this wondering how come there is so much text here. Fear not. It is I! Your boyfriend (dramatic cat pose (m)O_O(m) ). Before you start coding, I wanted to say that I admire your capability to say: you know what? Getting an actual dash board here with interactive plots and loads of visual user info sounds like a good idea. And then you go ahead and do it. What if you don´t have much experience on it, what if you do not know about the available tools and don´t have much time? You go ahead and do it anyway. Focusing single mindedly on it. I admire it. It is for things like this that I know that things will go well for you in the end. It is for things like this that I know you will be an awesome PhD student. You are getting close, babe. Te amo <3.")  # Previous text 'You belong to cluster A'
-                        ], id='cluster_div', className='box_comment', style={"width":"70%"})
                 ],
                 id="row1",
                 className="row"
             ),
 
+        # fifth row
+        html.Div(
+            [
+                
+                # TODO: what i wanted is a bar chart hehe, not buttons, a horizontal bar chart that show how many students there are in each cluster :)
+                # second widget: description of cluster
+                html.Div(
+                    [
+                        html.Label(
+                            "各类型学习者的人数",
+                            style={"font-size": "medium"},
+                        ),
+                        html.Br(),
+                        html.Label(
+                            "Number of students in each cluster",
+                            style={"font-size": "medium"},
+                        ),
+                        html.Br(),
+                        html.Br(),
+                        dcc.Graph(
+                            id='bar-num',
+                            figure=bar_num,
+                            )
+                    ],
+                    id='bar-num-box',
+                    className="box",
+                    style={"width":"30%", 'vertical-align': 'middle', 'horizontal-align': 'middle'}
+                ),
+                # third widget: description of cluster
+                # TODO: How about the color now of this box now?
+                html.Div([
+                        html.P(id='cluster_text', 
+                            # children="Hi babe. You are probably sleepy and reading this wondering how come there is so much text here. Fear not. It is I! Your boyfriend (dramatic cat pose (m)O_O(m) ). Before you start coding, I wanted to say that I admire your capability to say: you know what? Getting an actual dash board here with interactive plots and loads of visual user info sounds like a good idea. And then you go ahead and do it. What if you don´t have much experience on it, what if you do not know about the available tools and don´t have much time? You go ahead and do it anyway. Focusing single mindedly on it. I admire it. It is for things like this that I know that things will go well for you in the end. It is for things like this that I know you will be an awesome PhD student. You are getting close, babe. Te amo <3."
+                            children=""
+                            ),
+                        dcc.Markdown('''
+                            # 你属于VI型在线学习者
+
+                            ## 类别六的在线学习者对文字材料有着非常强烈的偏好，也是极强的表现力驱动的学习者，也同时是沉思型和序列型的学习者。你们更喜欢独自学习，而不是与同学进行热烈的讨论。你们喜欢对文字型材料进行学习，或者音频类型的语音类课件。你们喜欢按部就班地一章一章的推进学习工作，并且对获得好成绩、超越他人展现出一定的高欲望。
+                            ## VI型学习者是最罕见的学习者，你们在人群中是大熊猫般的存在。
+                            ## 在线学习风格模型一共具有六个不同的维度，想知道每个维度代表了什么吗？想知道你在每个维度上的偏好吗？那就继续往下阅读吧！你会找到答案的哦。
+                            ''')# Previous text 'You belong to cluster A'
+
+                        ], id='cluster_div', className='box_comment', style={"width":"30%"}),
+                # second widget: bar chart of number of courses choses
+                html.Div([
+                    html.Img(
+                        src=app.get_asset_url("Food.png"),
+                        style={
+                            "position": "relative",
+                            "width": "95%",
+                            "left": "20px",
+                            "top": "40px",
+                        },
+                        ),
+                    ]),
+                ],
+                id='row5',
+                className="row"
+            ),
         # second row
         html.Div(
             [
@@ -241,9 +387,9 @@ app.layout = html.Div(
                 # DONE: I added an extra html.Br()
                 html.Div(
                     [
-                        html.Label("Choose dimension"), 
-                        html.Br(),
                         html.Label("选择观察的维度"),
+                        html.Br(),
+                        html.Label("Choose dimension"), 
                         html.Br(),
                         html.Br(),
                         radio,
@@ -266,7 +412,7 @@ app.layout = html.Div(
                         # exactly like this
                         # header
                         html.Label(
-                        "You among all people 你在人群中的位置",
+                        "你在人群中的位置 You among all people ",
                            style={"font-size": "medium"},
                         ),
                       ],
@@ -278,7 +424,7 @@ app.layout = html.Div(
                             dcc.Graph(
                                 id="graph-pref1"),
                             html.Div(
-                                [html.P(id='comment-pref1')],
+                                [dcc.Markdown(id='comment-pref1')],
                                 className='box_comment',
                                 )
                                 ], id='preference1'),
@@ -287,7 +433,7 @@ app.layout = html.Div(
                             dcc.Graph(
                                 id="graph-pref2"),
                             html.Div(
-                                [html.P(id='comment-pref2')],
+                                [dcc.Markdown(id='comment-pref2')],
                                 className='box_comment',
                                 )
                                 
@@ -316,23 +462,23 @@ app.layout = html.Div(
                 # first widget: sum of clicks on different types over time
                 html.Div([
                     html.Label(
-                        "Number of clicks on each type of material",
-                        style={"font-size": "medium"},
-                    ),
-                    html.Br(),
-                    html.Label(
                         "各种类材料点击数量分布",
                         style={"font-size": "medium"},
                     ),
                     html.Br(),
+                    html.Label(
+                        "Number of clicks on each type of material",
+                        style={"font-size": "medium"},
+                    ),
+                    html.Br(),
                     html.Br(),
                     html.Label(
-                        "Click on it to know more!",
+                        "点击获取更多消息",
                         style={"font-size": "9px"},
                     ),
                     html.Br(),
                     html.Label(
-                        "点击获取更多消息",
+                        "Click on it to know more!",
                         style={"font-size": "9px"},
                     ),
                     html.Br(),
@@ -349,23 +495,23 @@ app.layout = html.Div(
                 # second widget: pie chart for diffent kinds of clicks
                 html.Div([
                     html.Label(
-                        "Number of clicks over time",
-                        style={"font-size": "medium"},
-                    ),
-                    html.Br(),
-                    html.Label(
                         "各种类材料点击数量随时间变化",
                         style={"font-size": "medium"},
                     ),
                     html.Br(),
+                    html.Label(
+                        "Number of clicks over time",
+                        style={"font-size": "medium"},
+                    ),
+                    html.Br(),
                     html.Br(),
                     html.Label(
-                        "Click on it to know more!",
+                        "点击获取更多消息",
                         style={"font-size": "9px"},
                     ),
                     html.Br(),
                     html.Label(
-                        "点击获取更多消息",
+                        "Click on it to know more!",
                         style={"font-size": "9px"},
                     ),
                     html.Br(),
@@ -391,23 +537,23 @@ app.layout = html.Div(
                 # first widget: sum of clicks on different types over time
                 html.Div([
                     html.Label(
-                        "Number of clicks over time",
-                        style={"font-size": "medium"},
-                    ),
-                    html.Br(),
-                    html.Label(
                         "各种类材料点击数量随时间变化",
                         style={"font-size": "medium"},
                     ),
                     html.Br(),
+                    html.Label(
+                        "Number of clicks over time",
+                        style={"font-size": "medium"},
+                    ),
+                    html.Br(),
                     html.Br(),
                     html.Label(
-                        "Click on it to know more!",
+                        "点击获取更多消息",
                         style={"font-size": "9px"},
                     ),
                     html.Br(),
                     html.Label(
-                        "点击获取更多消息",
+                        "Click on it to know more!",
                         style={"font-size": "9px"},
                     ),
                     html.Br(),
@@ -426,23 +572,23 @@ app.layout = html.Div(
                 # second widget: pie chart for diffent kinds of clicks
                 html.Div([
                     html.Label(
-                        "Number of clicks on each type of material",
-                        style={"font-size": "medium"},
-                    ),
-                    html.Br(),
-                    html.Label(
                         "各种类材料点击数量分布",
                         style={"font-size": "medium"},
                     ),
                     html.Br(),
+                    html.Label(
+                        "Number of clicks on each type of material",
+                        style={"font-size": "medium"},
+                    ),
+                    html.Br(),
                     html.Br(),
                     html.Label(
-                        "Click on it to know more!",
+                        "点击获取更多消息",
                         style={"font-size": "9px"},
                     ),
                     html.Br(),
                     html.Label(
-                        "点击获取更多消息",
+                        "Click on it to know more!",
                         style={"font-size": "9px"},
                     ),
                     html.Br(),
@@ -459,30 +605,6 @@ app.layout = html.Div(
                 className="row",
             ),
 
-        # fifth row
-        html.Div(
-            [
-                # first widget: bar chart of dropout rate
-                html.Div([
-                    
-                    ],
-                    id='dropout',
-                    className="box",
-                    style={"width": "50%"}
-                ),
-                
-                # second widget: bar chart of number of courses choses
-                html.Div([
-
-                    ],
-                    id='numberClass',
-                    className="box",
-                    style={"width": "50%"}
-                )
-                ],
-                id='row5',
-                className="row"
-            )
 
     ],
     className='main'
@@ -699,6 +821,34 @@ def display_charts_all(day):
     )
 
     return pie_chart_click, line_chart_click
+
+# Callbakcs for description of different preferences
+@app.callback(
+    Output("comment-pref1", "children"),
+    Output("comment-pref2", "children"),
+    Input("choose-dim", "value")
+)
+def description(chooseDim):
+    if chooseDim == "dim1":
+        text1 = "信息加工维度是测量你喜欢如何在大脑中处理信息的维度。你在此维度上具有沉思型偏好"
+        text2 = "你喜欢一个人安静的学习，而不是在在线论坛上与大家进行讨论。你喜欢首先安静地独自思考问题，“我们先好好想想吧”是你的口头禅。"
+    if chooseDim == "dim2":
+        text1 = "感知维度是测量你喜欢用什么样的方式去接受新知识的维度。你在此维度上是平衡型的。"
+        text2 = "你有时喜欢学习事实，有时又喜欢学习抽象的数学公式。你有时很注意细节，有时又很有创新性。"
+    if chooseDim == "dim3":
+        text1 = "理解维度是测量你喜欢以怎么样的顺序去学习知识的维度。你在此维度上具有序列型的偏好。"
+        text2 = "你习惯按线性步骤理解问题，每一步都合乎逻辑地紧跟前一步。你倾向于按部就班地寻找答案。"
+    if chooseDim == "dim4":
+        text1 = "输入维度是测量你喜欢用什么途径去获得新知识的维度。你在此维度上具有言语型偏好。"
+        text2 = "你擅长从文字和口头的解释中获取信息，通过阅读文章或听广播是你获取知识的主要途径。"
+    if chooseDim == "dim5":
+        text1 = "理解维度是测量你喜欢用什么样的方式从获得的信息转换为内部更深层次的理解的维度，你在此维度上具有演绎型的偏好。"
+        text2 = "你推理的时候，喜欢从广泛的大事实入手，得到结果。“如果A等于B，同时C又是A，那么C就是B。如果A不等于B，那么C不可能等于B” 是你喜欢的推理方式。"
+    if chooseDim == "dim6":
+        text1 = "动机维度是测量你的主要动机来源的维度，你在此维度上具有表现力偏好。"
+        text2 = "你努力学习主要是为了出人头地，想比别人更有成就，你喜欢在学习中竞争， 也喜欢在竞争中学习。"
+    
+    return text1, text2 
 
 if __name__ == "__main__":
     app.run_server(debug=True)
